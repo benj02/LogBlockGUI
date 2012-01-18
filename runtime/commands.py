@@ -579,7 +579,7 @@ class Commands(object):
                 results.append([key, value[0], value[1], value[2]])
                 continue
             # HINT: If the remote entry has a different MD5 checksum and modtime is > local entry modtime
-            if md5lcldict[cur_file][0] != value[0] and value[1] < md5lcldict[cur_file][1]:
+            if md5lcldict[cur_file][0] != value[0] and md5lcldict[cur_file][1] < value[1]:
                 results.append([key, value[0], value[1], value[2]])
 
         if results and not silent:
