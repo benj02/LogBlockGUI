@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.lbgui.ChatMessageHandler;
 
 public class NetClientHandler extends NetHandler
 {
@@ -466,6 +467,9 @@ public class NetClientHandler extends NetHandler
 
     public void handleChat(Packet3Chat packet3chat)
     {
+    	//@TODO HANDLE SOMETHING
+    	if(ChatMessageHandler.handleChatMessage(mc,packet3chat.message))
+    		return;
         mc.ingameGUI.addChatMessage(packet3chat.message);
     }
 
