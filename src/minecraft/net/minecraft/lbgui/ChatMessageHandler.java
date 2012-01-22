@@ -15,7 +15,6 @@ public class ChatMessageHandler {
 	private static ArrayList<String> changes = new ArrayList<String>();
 	private static String tempEntry = "";
 	private static Minecraft mcInstance;
-	private static DelayedPageRequest getNextPage;
 	
 	
 	public static void sendMessageToServer(final String message) {
@@ -41,46 +40,48 @@ public class ChatMessageHandler {
 		{
 			//System.out.println("[DEBUG] "+message);
 			if(message.endsWith(" changes found.")) {
-				blockChanges = Integer.parseInt(message.split(ChatColors.Teal)[1].replace(" changes found.", ""));
-				mc.ingameGUI.addChatMessage(ChatColors.Gold+"LogBlock says there are "+blockChanges+" within a "+blockArea+" block area.");
+				blockChanges = Integer.parseInt(message.split(ChatColors.Blue)[1].replace(" changes found.", ""));
+				mc.ingameGUI.addChatMessage(ChatColors.Gold+"LogBlock says there are "+blockChanges+" changes within a "+blockArea+" block area.");
 				//handlingLogblock=false;
 				changes = new ArrayList<String>();
 			}
 			
 			else if(message.startsWith(ChatColors.Gold)) {
+				//mc.ingameGUI.addChatMessage(message);
 				if (message.startsWith(ChatColors.Gold + "(")) {
-					if (tempEntry == "")
-						tempEntry = message;
-					else {
-						//System.out.println("[DEBUG] ENTRY: " + tempEntry);
+					if(tempEntry != "") {
+						System.out.println("Adding full data ("+tempEntry+") to list.");
 						changes.add(tempEntry.replace(ChatColors.Gold, ""));
+						tempEntry = message;
+						pageScroll++;
+					} else {
+						System.out.println("Entry ("+message+") only took up one line");
+						changes.add(message.replace(ChatColors.Gold, ""));
 						tempEntry = "";
 						pageScroll++;
 					}
 				} else {
+					System.out.println("Adding "+message+" to"+tempEntry);
 					tempEntry = tempEntry + message;
-					//System.out.println("[DEBUG] ENTRY: " + tempEntry);
-					changes.add(tempEntry.replace(ChatColors.Gold, ""));
-					tempEntry = "";
-					pageScroll++;
 				}
 				
-				if (pageScroll >= pageLimit) {
-					pageScroll = 0;
+				
+				if(pageScroll>=pageLimit) {
+					pageScroll=0;
 					sendMessageToServer("/lb next");
-					// System.out.println("[DEBUG] Requesting next page in a delayed request.");
-					// getNextPage = new DelayedPageRequest();
-					// getNextPage.start();
-					// mc.thePlayer.sendChatMessage("/nothing");
 				}
 			}
 			
 			else if(message.startsWith(ChatColors.Red+"There isn't a page")) {
+				if(tempEntry!="") 
+					changes.add(tempEntry.replace(ChatColors.Gold, ""));
 				handlingLogblock=false;
 				//getNextPage.interrupt();
 				mc.ingameGUI.addChatMessage("Scraped all pages. Preparing results.");
+				mc.ingameGUI.addChatMessage(ChatColors.Pink+"Results collected: "+changes.size()+". If this number isnt "+blockChanges+" tell a dev.");
 				for(String i : changes) {
-					System.out.println(i);
+					
+					System.out.println("Entry: '"+i+"'");
 				}
 			}
 			
@@ -90,7 +91,7 @@ public class ChatMessageHandler {
 			return true;
 		}
 		else {
-			if(message.startsWith(ChatColors.Teal+"Block changes")) {
+			if(message.startsWith(ChatColors.Blue+"Block changes")) {
 				handlingLogblock=true;
 				blockArea = Integer.parseInt(message.split("within ")[1].split(" blocks of you")[0]);
 				
@@ -99,25 +100,4 @@ public class ChatMessageHandler {
 		System.out.println(message);
 		return handlingLogblock;
 	}
-}
-
-class DelayedPageRequest extends Thread {
-	
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		try {
-			if(ChatMessageHandler.handlingLogblock)
-			{
-				Thread.sleep(2000);
-				System.out.println("Sending /lb next...");
-				ChatMessageHandler.sendMessageToServer("/lb next");
-			}
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-	}
-	
 }
